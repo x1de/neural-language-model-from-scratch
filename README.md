@@ -10,7 +10,9 @@ On Windows, open PowerShell in this folder and run:
 .\run_demo.cmd
 ```
 
-The full-screen TUI opens with a prompt field, temperature and length controls, and a scrollable output panel. Type a prompt such as `Alice was`, `The Rabbit said`, or `The Queen`; press **Enter** or **F5** to generate. Use **F6** to clear the output and **Ctrl-Q** to quit. Change the temperature or length fields to explore how sampling changes the output. The default is 300 new characters. You can also run one prompt directly without opening the TUI:
+The full-screen TUI opens with a prompt field, temperature and length controls, and a scrollable output panel. Press **Tab** or **Shift-Tab** to move among the three input fields; **F2** focuses temperature, **F3** length, and **F4** the prompt. Type a prompt such as `Alice was`, `The Rabbit said`, or `The Queen`; press **Enter** from the prompt or **F5** from any field to generate. Use **F6** to clear the output and **Ctrl-Q** to quit. Change temperature or length to explore how sampling changes the output. The default is 300 new characters. You can also run one prompt directly without opening the TUI:
+
+
 
 ```powershell
 .\run_demo.cmd --prompt "Alice was" --length 300 --temperature 0.6
@@ -22,6 +24,10 @@ The launcher uses the bundled Python on the development machine if present. On a
 python -m pip install -r requirements.txt
 python tui.py
 ```
+
+For a cleaner short sample, try **100–150 characters** and a temperature around **0.4–0.6**. This can reduce randomness but does not give the model sentence-level understanding. It is a small character predictor trained on one book, so invented words and drifting grammar are expected.
+
+
 
 ## Dataset and preparation
 
