@@ -1,0 +1,9 @@
+{
+  "model": "lstm",
+  "parameters": 112905,
+  "held_out_cross_entropy_nats_per_character": 1.5559,
+  "held_out_perplexity": 4.74,
+  "uniform_baseline_cross_entropy": 4.2905,
+  "evaluated_characters": 14448,
+  "nonoverlapping_windows": 301
+}

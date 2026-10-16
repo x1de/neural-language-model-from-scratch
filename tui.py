@@ -1,4 +1,4 @@
-"""Full-screen terminal interface for the trained character RNN."""
+"""Full-screen terminal interface for the trained character models."""
 
 from pathlib import Path
 
@@ -11,19 +11,25 @@ from prompt_toolkit.styles import Style
 from prompt_toolkit.widgets import Button, Frame, Label, TextArea
 
 from model import CharRNN
+from lstm_model import CharLSTM
 
 
-CHECKPOINT = Path(__file__).with_name("alice_char_rnn.npz")
+RNN_CHECKPOINT = Path(__file__).with_name("alice_char_rnn.npz")
+LSTM_CHECKPOINT = Path(__file__).with_name("alice_char_lstm.npz")
 
 
-def build_app(model, input=None, output=None):
+def build_app(model, input=None, output=None, alternate_model=None):
     prompt = TextArea(text="Alice was", height=1, multiline=False, prompt=" > ")
     temperature = TextArea(text="0.6", height=1, multiline=False)
     length = TextArea(text="300", height=1, multiline=False)
     output_field = TextArea(text="Press Enter or F5 to generate from the prompt.", read_only=True,
                             scrollbar=True, wrap_lines=True, focusable=True)
-    status = Label(text="Tab / Shift-Tab: fields  |  F2: temperature  |  F3: length  |  F5: generate")
+    status = Label(text="Tab: fields  |  F2: temperature  |  F3: length  |  F5: generate  |  F7: switch model")
     generation = 0
+    current_model = model
+
+    def model_name():
+        return "LSTM" if isinstance(current_model, CharLSTM) else "RNN"
 
     def generate():
         nonlocal generation
@@ -38,15 +44,23 @@ def build_app(model, input=None, output=None):
             if not 0.1 <= temp <= 2.0:
                 raise ValueError("Temperature must be from 0.1 to 2.0.")
             generation += 1
-            output_field.text = model.generate(entered, n, temp, seed=generation)
+            output_field.text = current_model.generate(entered, n, temp, seed=generation)
             status.text = (f"Generated {n} characters  |  sample #{generation}  |  "
-                           "small character RNN: expect invented words and drift")
+                           f"{model_name()}: character-level model, expect some errors")
         except ValueError as exc:
             status.text = f"Input error: {exc}"
 
     def clear():
         output_field.text = ""
         status.text = "Output cleared."
+
+    def switch_model():
+        nonlocal current_model
+        if alternate_model is None:
+            status.text = "Only one model checkpoint is available."
+            return
+        current_model = alternate_model if current_model is model else model
+        status.text = f"Switched to {model_name()} ({current_model.parameter_count:,} parameters). Press F5 to generate."
 
     prompt.buffer.accept_handler = lambda _: (generate(), True)[1]
     kb = KeyBindings()
@@ -58,6 +72,10 @@ def build_app(model, input=None, output=None):
     @kb.add("f6")
     def _clear(event):
         clear()
+
+    @kb.add("f7")
+    def _switch_model(event):
+        switch_model()
 
     @kb.add("c-q")
     def _quit(event):
@@ -93,12 +111,13 @@ def build_app(model, input=None, output=None):
     buttons = VSplit([
         Button(text="Generate [F5]", handler=generate),
         Button(text="Clear [F6]", handler=clear),
+        Button(text="Switch [F7]", handler=switch_model),
         Button(text="Quit [Ctrl-Q]", handler=lambda: app.exit()),
     ], padding=2)
     body = HSplit([
-        Window(FormattedTextControl([
-            ("class:title", "  ALICE  /  SMALL LANGUAGE MODEL"),
-            ("class:subtitle", "     24,505 parameters · next-character prediction")
+        Window(FormattedTextControl(lambda: [
+            ("class:title", f"  ALICE  /  {model_name()} LANGUAGE MODEL"),
+            ("class:subtitle", f"     {current_model.parameter_count:,} parameters · next-character prediction")
         ]), height=2),
         Frame(prompt, title="PROMPT"),
         VSplit([
@@ -131,10 +150,15 @@ def build_app(model, input=None, output=None):
 
 
 def main():
-    if not CHECKPOINT.exists():
-        raise SystemExit("Checkpoint missing. Run train.py first.")
-    model = CharRNN.load(CHECKPOINT)
-    build_app(model).run()
+    if LSTM_CHECKPOINT.exists():
+        model = CharLSTM.load(LSTM_CHECKPOINT)
+        alternate = CharRNN.load(RNN_CHECKPOINT) if RNN_CHECKPOINT.exists() else None
+    elif RNN_CHECKPOINT.exists():
+        model = CharRNN.load(RNN_CHECKPOINT)
+        alternate = None
+    else:
+        raise SystemExit("Checkpoint missing. Run train.py or train_lstm.py first.")
+    build_app(model, alternate_model=alternate).run()
 
 
 if __name__ == "__main__":
