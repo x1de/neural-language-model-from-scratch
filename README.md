@@ -82,11 +82,11 @@ The held-out score measures next-character prediction. It does not prove factual
 - `model.py`, `lstm_model.py`: NumPy recurrent models with manual backpropagation
 - `transformer_model.py`: PyTorch causal self-attention model
 - `train.py`, `train_lstm.py`, `train_transformer.py`: training and metric logging
-- `evaluate.py`: deterministic full held-out evaluation for either model
+- `evaluate.py`: deterministic full held-out evaluation for all three models
 - `tui.py`: full-screen interactive prompt demo
 - `demo.py`: plain CLI for one-prompt generation and automation
 - `make_samples.py`, `sample_generations.txt`, `lstm_sample_generations.txt`, and `transformer_sample_generations.txt`: reproducible examples
 - `alice_char_rnn.npz`, `alice_char_lstm.npz`, `alice_char_transformer.pt`: trained weights
 - `training_metrics.json`, `lstm_training_metrics.json`, `transformer_training_metrics.json` and evaluation JSON files: recorded measurements
 - `run_demo.cmd`, `run_demo.ps1`: Windows launchers
-- `requirements.txt`: NumPy and prompt_toolkit dependencies
+- `requirements.txt`: NumPy, prompt_toolkit, and PyTorch dependencies
