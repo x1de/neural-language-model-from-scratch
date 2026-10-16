@@ -22,7 +22,7 @@ def build_app(model, input=None, output=None):
     length = TextArea(text="300", height=1, multiline=False)
     output_field = TextArea(text="Press Enter or F5 to generate from the prompt.", read_only=True,
                             scrollbar=True, wrap_lines=True, focusable=True)
-    status = Label(text="Ready  |  trained from scratch  |  Ctrl-Q: quit")
+    status = Label(text="Tab / Shift-Tab: fields  |  F2: temperature  |  F3: length  |  F5: generate")
     generation = 0
 
     def generate():
@@ -39,7 +39,8 @@ def build_app(model, input=None, output=None):
                 raise ValueError("Temperature must be from 0.1 to 2.0.")
             generation += 1
             output_field.text = model.generate(entered, n, temp, seed=generation)
-            status.text = f"Generated {n} characters  |  sample #{generation}  |  F5: generate again"
+            status.text = (f"Generated {n} characters  |  sample #{generation}  |  "
+                           "small character RNN: expect invented words and drift")
         except ValueError as exc:
             status.text = f"Input error: {exc}"
 
@@ -61,6 +62,33 @@ def build_app(model, input=None, output=None):
     @kb.add("c-q")
     def _quit(event):
         event.app.exit()
+
+    fields = (prompt, temperature, length)
+
+    def move_field(event, direction):
+        layout = event.app.layout
+        current = next((i for i, field in enumerate(fields) if layout.has_focus(field)), -1)
+        layout.focus(fields[(current + direction) % len(fields)])
+
+    @kb.add("tab")
+    def _next_field(event):
+        move_field(event, 1)
+
+    @kb.add("s-tab")
+    def _previous_field(event):
+        move_field(event, -1)
+
+    @kb.add("f2")
+    def _focus_temperature(event):
+        event.app.layout.focus(temperature)
+
+    @kb.add("f3")
+    def _focus_length(event):
+        event.app.layout.focus(length)
+
+    @kb.add("f4")
+    def _focus_prompt(event):
+        event.app.layout.focus(prompt)
 
     buttons = VSplit([
         Button(text="Generate [F5]", handler=generate),
