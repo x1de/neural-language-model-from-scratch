@@ -34,7 +34,7 @@ I downloaded *Alice's Adventures in Wonderland* by Lewis Carroll from the [GITen
 
 ## Model and training
 
-The RNN baseline has a learned 48-dimensional character embedding, one 96-unit tanh recurrent layer, and a linear output followed by softmax. It has **24,505 trainable parameters**. The LSTM has a 64-dimensional embedding, one 128-unit LSTM layer, and the same type of output head. Its four gates give it **112,905 trainable parameters**. The forget gate scales the previous cell memory, the input gate admits new candidate information, and the output gate controls the exposed hidden state. Both models predict the next character with cross-entropy loss. All weights start from random values (seed 448).
+The RNN baseline has a learned 48-dimensional character embedding, one 96-unit tanh recurrent layer, and a linear output followed by softmax. It has **24,505 trainable parameters**. The LSTM has a 64-dimensional embedding, one 128-unit LSTM layer, and the same type of output head. Its three gates plus a candidate memory update give it **112,905 trainable parameters**. The forget gate scales the previous cell memory, the input gate admits new candidate information, and the output gate controls the exposed hidden state. Both models predict the next character with cross-entropy loss. All weights start from random values (seed 448).
 
 The saved checkpoint `alice_char_rnn.npz` was trained for **6,000 Adam updates** with batch size 16, sequence length 48, learning rate 0.003, and gradient clipping at norm 5. The observed training run took about **45.7 seconds** in the bundled NumPy environment. Training progress is in `training_metrics.json`.
 
