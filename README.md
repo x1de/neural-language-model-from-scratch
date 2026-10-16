@@ -1,10 +1,10 @@
-# Homework 3: a small language model trained from scratch
+# Neural Language Model From Scratch
 
-This folder contains a working character-level language model, its source text, a saved checkpoint, training and evaluation code, and a live prompt interface. No pretrained weights or tokenizers are used.
+A **24,505-parameter character-level recurrent language model** implemented in NumPy with manual backpropagation through time. It includes Adam training, a reproducible held-out evaluation (**1.663 nats/character**), a saved checkpoint, and an interactive terminal UI. All weights start from random values; no pretrained model or tokenizer is used.
 
-## Quick demo for the TA
+## Interactive demo
 
-On this Windows computer, open PowerShell in this folder and run:
+On Windows, open PowerShell in this folder and run:
 
 ```powershell
 .\run_demo.cmd
@@ -16,7 +16,7 @@ The full-screen TUI opens with a prompt field, temperature and length controls, 
 .\run_demo.cmd --prompt "Alice was" --length 300 --temperature 0.6
 ```
 
-The launcher uses the bundled Python on this computer if present. On another machine, install Python, NumPy, and prompt_toolkit, then run `python tui.py`:
+The launcher uses the bundled Python on the development machine if present. On another machine, install Python and the dependencies, then run `python tui.py`:
 
 ```powershell
 python -m pip install -r requirements.txt
