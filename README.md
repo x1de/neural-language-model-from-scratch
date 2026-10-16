@@ -25,7 +25,7 @@ python tui.py
 
 ## Dataset and preparation
 
-I downloaded *Alice's Adventures in Wonderland* by Lewis Carroll from the [GITenberg mirror of Project Gutenberg eBook 11](https://github.com/GITenberg/Alice-s-Adventures-in-Wonderland_11/blob/master/11-0.txt). The [official Project Gutenberg catalog](https://www.gutenberg.org/ebooks/11) identifies the work and provides a plain-text version. The untouched download, including its license, is `data/alice_gutenberg.txt`. Its SHA-256 is recorded in `training_metrics.json`.
+I downloaded *Alice's Adventures in Wonderland* by Lewis Carroll from the [GITenberg mirror of Project Gutenberg eBook 11](https://github.com/GITenberg/Alice-s-Adventures-in-Wonderland_11/blob/master/11-0.txt). The [official Project Gutenberg catalog](https://www.gutenberg.org/ebooks/11) identifies the work and provides a plain-text version. The downloaded text, including its license, is `data/alice_gutenberg.txt`. Its SHA-256 is recorded in `training_metrics.json`.
 
 `train.py` removes the Project Gutenberg header and footer for modeling, retains the book text, converts line endings to `\n`, and uses individual Unicode characters as tokens. The corpus has **144,519 characters** and **73 distinct characters**. The first 90% (130,067 characters) is used for training; the final 10% (14,452 characters) is held out for evaluation. This contiguous split prevents training on evaluation text.
 
@@ -65,4 +65,4 @@ The held-out score measures next-character prediction. It does not prove factual
 - `alice_char_rnn.npz`: trained weights
 - `training_metrics.json`, `evaluation.json`: recorded measurements
 - `run_demo.cmd`, `run_demo.ps1`: Windows launchers
-- `requirements.txt`: NumPy dependency
+- `requirements.txt`: NumPy and prompt_toolkit dependencies
