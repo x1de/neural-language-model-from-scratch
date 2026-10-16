@@ -1,4 +1,4 @@
-"""Evaluate either saved model on the untouched final 10% of the book."""
+"""Evaluate any saved model on the untouched final 10% of the book."""
 
 import argparse
 import json
@@ -14,10 +14,15 @@ from train import load_corpus
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--model", choices=("rnn", "lstm"), default="rnn")
+    parser.add_argument("--model", choices=("rnn", "lstm", "transformer"), default="rnn")
     args = parser.parse_args()
     root = Path(__file__).resolve().parent
-    if args.model == "lstm":
+    if args.model == "transformer":
+        from transformer_model import CharTransformer
+        from train_transformer import full_validation_loss
+        model = CharTransformer.load(root / "alice_char_transformer.pt")
+        output = root / "transformer_evaluation.json"
+    elif args.model == "lstm":
         model = CharLSTM.load(root / "alice_char_lstm.npz")
         output = root / "lstm_evaluation.json"
     else:
@@ -26,7 +31,21 @@ def main():
     _, text = load_corpus()
     ids = np.array([model.to_id[c] for c in text], dtype=np.int32)
     val = ids[int(len(ids) * 0.9):]
-    length = 48
+    length = model.context if args.model == "transformer" else 48
+    if args.model == "transformer":
+        avg, count = full_validation_loss(model, val, length)
+        result = {
+            "model": args.model,
+            "parameters": model.parameter_count,
+            "held_out_cross_entropy_nats_per_character": round(avg, 4),
+            "held_out_perplexity": round(math.exp(avg), 2),
+            "uniform_baseline_cross_entropy": round(math.log(len(model.chars)), 4),
+            "evaluated_characters": count,
+            "nonoverlapping_windows": count // length,
+        }
+        output.write_text(json.dumps(result, indent=2), encoding="utf-8")
+        print(json.dumps(result, indent=2))
+        return
     losses = []
     for start in range(0, len(val) - length - 1, length):
         xs = val[start:start + length][None, :]

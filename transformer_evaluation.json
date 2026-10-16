@@ -1,0 +1,9 @@
+{
+  "model": "transformer",
+  "parameters": 168457,
+  "held_out_cross_entropy_nats_per_character": 1.5934,
+  "held_out_perplexity": 4.92,
+  "uniform_baseline_cross_entropy": 4.2905,
+  "evaluated_characters": 14448,
+  "nonoverlapping_windows": 301
+}

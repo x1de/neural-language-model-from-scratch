@@ -1,7 +1,10 @@
 $ErrorActionPreference = 'Stop'
 $project = Split-Path -Parent $MyInvocation.MyCommand.Path
+$venv = Join-Path $project '.venv\Scripts\python.exe'
 $bundled = Join-Path $env:USERPROFILE '.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe'
-if (Test-Path $bundled) {
+if (Test-Path $venv) {
+    $pythonExe = $venv
+} elseif (Test-Path $bundled) {
     $pythonExe = $bundled
 } else {
     $pythonExe = 'python'

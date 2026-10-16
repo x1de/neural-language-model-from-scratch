@@ -16,9 +16,10 @@ from lstm_model import CharLSTM
 
 RNN_CHECKPOINT = Path(__file__).with_name("alice_char_rnn.npz")
 LSTM_CHECKPOINT = Path(__file__).with_name("alice_char_lstm.npz")
+TRANSFORMER_CHECKPOINT = Path(__file__).with_name("alice_char_transformer.pt")
 
 
-def build_app(model, input=None, output=None, alternate_model=None):
+def build_app(model, input=None, output=None, alternate_model=None, models=None):
     prompt = TextArea(text="Alice was", height=1, multiline=False, prompt=" > ")
     temperature = TextArea(text="0.6", height=1, multiline=False)
     length = TextArea(text="300", height=1, multiline=False)
@@ -26,10 +27,13 @@ def build_app(model, input=None, output=None, alternate_model=None):
                             scrollbar=True, wrap_lines=True, focusable=True)
     status = Label(text="Tab: fields  |  F2: temperature  |  F3: length  |  F5: generate  |  F7: switch model")
     generation = 0
-    current_model = model
+    available_models = list(models) if models is not None else [model] + ([alternate_model] if alternate_model is not None else [])
+    current_index = 0
+    current_model = available_models[current_index]
 
     def model_name():
-        return "LSTM" if isinstance(current_model, CharLSTM) else "RNN"
+        return {"CharTransformer": "TRANSFORMER", "CharLSTM": "LSTM", "CharRNN": "RNN"}.get(
+            type(current_model).__name__, "MODEL")
 
     def generate():
         nonlocal generation
@@ -55,11 +59,12 @@ def build_app(model, input=None, output=None, alternate_model=None):
         status.text = "Output cleared."
 
     def switch_model():
-        nonlocal current_model
-        if alternate_model is None:
+        nonlocal current_model, current_index
+        if len(available_models) < 2:
             status.text = "Only one model checkpoint is available."
             return
-        current_model = alternate_model if current_model is model else model
+        current_index = (current_index + 1) % len(available_models)
+        current_model = available_models[current_index]
         status.text = f"Switched to {model_name()} ({current_model.parameter_count:,} parameters). Press F5 to generate."
 
     prompt.buffer.accept_handler = lambda _: (generate(), True)[1]
@@ -150,15 +155,17 @@ def build_app(model, input=None, output=None, alternate_model=None):
 
 
 def main():
+    models = []
     if LSTM_CHECKPOINT.exists():
-        model = CharLSTM.load(LSTM_CHECKPOINT)
-        alternate = CharRNN.load(RNN_CHECKPOINT) if RNN_CHECKPOINT.exists() else None
-    elif RNN_CHECKPOINT.exists():
-        model = CharRNN.load(RNN_CHECKPOINT)
-        alternate = None
-    else:
-        raise SystemExit("Checkpoint missing. Run train.py or train_lstm.py first.")
-    build_app(model, alternate_model=alternate).run()
+        models.append(CharLSTM.load(LSTM_CHECKPOINT))
+    if TRANSFORMER_CHECKPOINT.exists():
+        from transformer_model import CharTransformer
+        models.append(CharTransformer.load(TRANSFORMER_CHECKPOINT))
+    if RNN_CHECKPOINT.exists():
+        models.append(CharRNN.load(RNN_CHECKPOINT))
+    if not models:
+        raise SystemExit("Checkpoint missing. Run a training script first.")
+    build_app(models[0], models=models).run()
 
 
 if __name__ == "__main__":

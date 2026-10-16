@@ -13,16 +13,29 @@ def main():
     parser.add_argument("--length", type=int, default=300)
     parser.add_argument("--temperature", type=float, default=0.8)
     parser.add_argument("--seed", type=int, default=1)
-    parser.add_argument("--model", choices=("rnn", "lstm"), default="lstm")
+    parser.add_argument("--model", choices=("rnn", "lstm", "transformer"),
+                        help="Default: LSTM if trained, otherwise transformer or RNN")
     args = parser.parse_args()
-    checkpoint = Path(__file__).with_name(f"alice_char_{args.model}.npz")
+    root = Path(__file__).resolve().parent
+    selected = args.model or next(
+        (name for name, filename in (("lstm", "alice_char_lstm.npz"),
+                                     ("transformer", "alice_char_transformer.pt"),
+                                     ("rnn", "alice_char_rnn.npz")) if (root / filename).exists()),
+        "rnn",
+    )
+    checkpoint = root / ("alice_char_transformer.pt" if selected == "transformer"
+                         else f"alice_char_{selected}.npz")
     if not checkpoint.exists():
         raise SystemExit(f"Checkpoint missing: {checkpoint.name}. Run the matching training script first.")
-    model = (CharLSTM if args.model == "lstm" else CharRNN).load(checkpoint)
+    if selected == "transformer":
+        from transformer_model import CharTransformer
+        model = CharTransformer.load(checkpoint)
+    else:
+        model = (CharLSTM if selected == "lstm" else CharRNN).load(checkpoint)
     if args.prompt is not None:
         print(model.generate(args.prompt, args.length, args.temperature, args.seed))
         return
-    print(f"Alice {args.model.upper()} ready. Enter a prompt; blank input exits.\n")
+    print(f"Alice {selected.upper()} ready. Enter a prompt; blank input exits.\n")
     seed = args.seed
     while True:
         try:
