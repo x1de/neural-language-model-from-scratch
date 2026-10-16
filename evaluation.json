@@ -1,0 +1,7 @@
+{
+  "held_out_cross_entropy_nats_per_character": 1.663,
+  "held_out_perplexity": 5.28,
+  "uniform_baseline_cross_entropy": 4.2905,
+  "evaluated_characters": 14448,
+  "nonoverlapping_windows": 301
+}
